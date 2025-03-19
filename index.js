@@ -344,7 +344,7 @@ function bookInformation(agent) {
   let response = "";
 if (query.includes("published")) {
     response = `${info.title} was published in ${info.publishedYear}.`;
-  } else if (query.includes("page") || query.includes("pages")) {
+  } else if (query.includes("page") || query.includes("pages") || query.includes("many pages")) {
     response = `${info.title} has about ${info.pages} pages.`;
   } else if (query.includes("who wrote") || query.includes("author")) {
     response = `${info.title} was written by ${info.author}.`;
