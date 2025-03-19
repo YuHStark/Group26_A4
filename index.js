@@ -96,10 +96,14 @@ const authorRecommendations = {
   "margaret atwood": ["The Handmaid's Tale", "Oryx and Crake", "Alias Grace"],
   "ernest hemingway": ["The Old Man and the Sea", "A Farewell to Arms", "For Whom the Bell Tolls"],
   "agatha christie": ["Murder on the Orient Express", "And Then There Were None", "The Mysterious Affair at Styles"],
+  "rick riordan": ["Percy Jackson and the Lightning Thief", "The Heroes of Olympus", "The Kane Chronicles"],
   "neil gaiman": ["American Gods", "Coraline", "Neverwhere", "The Graveyard Book"],
-  "john grisham": ["The Firm", "A Time to Kill", "The Pelican Brief"],
-  "orson scott card": ["Ender's Game", "Speaker for the Dead", "Xenocide"],
-  "jane austen": ["Pride and Prejudice", "Sense and Sensibility", "Emma"]
+  "toni morrison": ["Beloved", "Song of Solomon", "The Bluest Eye"],
+  "john green": ["The Fault in Our Stars", "Looking for Alaska", "Paper Towns"],
+  "george orwell": ["1984", "Animal Farm", "Homage to Catalonia"],
+  "jane austen": ["Pride and Prejudice", "Sense and Sensibility", "Emma"],
+  "stephen king": ["The Shining", "It", "The Stand"],
+  "j.k. rowling": ["Harry Potter and the Philosopher's Stone", "Harry Potter and the Chamber of Secrets", "Harry Potter and the Prisoner of Azkaban"]
 };
 
 // 1.3 Genre-based recommendations (GenreBasedRecommendationIntent)
@@ -129,7 +133,11 @@ const similarBooks = {
   "the great gatsby": ["This Side of Paradise", "The Sun Also Rises", "The Age of Innocence"],
   "lord of the rings": ["The Silmarillion", "Wheel of Time", "Mistborn"],
   "jane eyre": ["Wuthering Heights", "Rebecca", "North and South"],
-  "the hunger games": ["Divergent", "Battle Royale", "The Maze Runner"]
+  "agatha christie novels": ["Dorothy L. Sayers novels", "Sherlock Holmes series", "Hercule Poirot series"],
+  "dune": ["Foundation", "Hyperion", "Ender's Game"],
+  "the hunger games": ["Divergent", "Battle Royale", "The Maze Runner"],
+  "the alchemist": ["The Pilgrimage", "Siddhartha", "Life of Pi"],
+  "harry potter": ["Percy Jackson series", "The Chronicles of Narnia", "Artemis Fowl"]
 };
 
 // 1.5 Top-rated books (TopRatedBooksIntent)
@@ -334,33 +342,39 @@ function bookInformation(agent) {
   // Determine which detail the user wants based on the query text
   const query = agent.query.toLowerCase();
   let response = "";
-
-  if (query.includes("published")) {
+if (query.includes("published")) {
     response = `${info.title} was published in ${info.publishedYear}.`;
   } else if (query.includes("page") || query.includes("pages")) {
     response = `${info.title} has about ${info.pages} pages.`;
   } else if (query.includes("who wrote") || query.includes("author")) {
     response = `${info.title} was written by ${info.author}.`;
-  }else if (
+  } 
+  
+  else if (
     query.includes("introduce") ||
     query.includes("i want to know") ||
     (query.includes("tell me about") && query.includes(info.title.toLowerCase()))
-) {
-    // Return ALL information about the book
-    response = 
+  ) {
+    response =
       `Here's everything about "${info.title}":\n` +
       `• Author: ${info.author}\n` +
       `• Published: ${info.publishedYear}\n` +
       `• Pages: ${info.pages}\n` +
       `• Book Description: ${info.description}`;
-
-  } else if (query.includes("about") || query.includes("what is") || query.includes("tell me")) {
+  }
+  // Partial info: "about", "what is", "tell me" (without the exact title)
+  else if (
+    query.includes("about") ||
+    query.includes("what is") ||
+    query.includes("tell me")
+  ) {
     response = `${info.title}: ${info.description}`;
   } else {
-    // Default to description
+    // 6) Default to description
     response = `${info.title}: ${info.description}`;
   }
 
+  // 7) Respond to the user
   agent.add(response);
   agent.add("Is there anything else you'd like to know?");
 }
