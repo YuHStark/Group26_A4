@@ -2,6 +2,7 @@
  * index.js
  * A complete Node.js Fulfillment for a Book Recommender Chatbot
  * that handles multiple Intents with "prepared" answers (no DB calls).
+ * Now includes fuzzy/substring matching for book_title and author.
  */
 
 const express = require('express');
@@ -10,11 +11,11 @@ const { WebhookClient } = require('dialogflow-fulfillment');
 
 const app = express().use(bodyParser.json());
 
-// ====================== 1. 内置“知识库”模拟 ======================
+// ====================== 1. Built-in "knowledge base" (mock data) ======================
 
-// 1.1 书籍详细信息 (BookInformationIntent) 
-//     覆盖了训练短语中出现的书籍，如 1984, War and Peace, Pride and Prejudice, 等
-//     每个对象可含 author, publishedYear, pages, summary 等信息
+// 1.1 Book details (BookInformationIntent) 
+//     Covers books mentioned in your training phrases (e.g., 1984, War and Peace, Pride and Prejudice, etc.)
+//     Each object can contain author, publishedYear, pages, summary, etc.
 const bookDetails = {
   "1984": {
     title: "1984",
@@ -88,8 +89,8 @@ const bookDetails = {
   }
 };
 
-// 1.2 按作者推荐书籍 (AuthorBasedRecommendationIntent)
-//     覆盖了训练短语里常见的作者
+// 1.2 Author-based recommendations (AuthorBasedRecommendationIntent)
+//     Covers authors mentioned in your training phrases
 const authorRecommendations = {
   "louisa may alcott": ["Little Women", "Good Wives", "Jo's Boys"],
   "margaret atwood": ["The Handmaid's Tale", "Oryx and Crake", "Alias Grace"],
@@ -101,9 +102,9 @@ const authorRecommendations = {
   "jane austen": ["Pride and Prejudice", "Sense and Sensibility", "Emma"]
 };
 
-// 1.3 按类型（Genre）推荐书籍 (GenreBasedRecommendationIntent)
-//     训练短语中出现了 science fiction, fantasy, mystery, romance, historical fiction, 
-//     non-fiction, thriller, young adult, horror, self-help 等
+// 1.3 Genre-based recommendations (GenreBasedRecommendationIntent)
+//     Your training phrases mention: science fiction, fantasy, mystery, romance, historical fiction, 
+//     non-fiction, thriller, young adult, horror, self-help, etc.
 const genreRecommendations = {
   "science fiction": ["Dune", "Ender's Game", "Foundation"],
   "fantasy": ["The Hobbit", "A Game of Thrones", "The Name of the Wind"],
@@ -117,9 +118,9 @@ const genreRecommendations = {
   "self-help": ["The 7 Habits of Highly Effective People", "How to Win Friends & Influence People"]
 };
 
-// 1.4 寻找类似的书籍 (SimilarBookRecommendationIntent)
-//     训练短语中出现: Game of Thrones, Pride and Prejudice, To Kill a Mockingbird, 1984, 
-//     The Great Gatsby, Lord of the Rings, Jane Eyre, The Hunger Games 等
+// 1.4 Similar books (SimilarBookRecommendationIntent)
+//     Your training phrases mention: Game of Thrones, Pride and Prejudice, To Kill a Mockingbird, 1984, 
+//     The Great Gatsby, Lord of the Rings, Jane Eyre, The Hunger Games, etc.
 const similarBooks = {
   "game of thrones": ["The Name of the Wind", "The Way of Kings", "The Wheel of Time"],
   "pride and prejudice": ["Sense and Sensibility", "Emma", "Wuthering Heights"],
@@ -131,8 +132,8 @@ const similarBooks = {
   "the hunger games": ["Divergent", "Battle Royale", "The Maze Runner"]
 };
 
-// 1.5 推荐评分最高的书籍 (TopRatedBooksIntent)
-//     如果用户提到某个类型，就给出该类型里一些高评分作品；若未提到类型，则给出通用高评分
+// 1.5 Top-rated books (TopRatedBooksIntent)
+//     If a user mentions a genre, return some high-rated works for that genre; otherwise, return a general top-rated list
 const topRatedByGenre = {
   "science fiction": ["Dune", "Neuromancer", "Ender's Game"],
   "fantasy": ["The Lord of the Rings", "A Song of Ice and Fire", "The Name of the Wind"],
@@ -141,7 +142,7 @@ const topRatedByGenre = {
   "non-fiction": ["Sapiens", "Educated", "Hiroshima"],
   "horror": ["Dracula", "Frankenstein", "The Haunting of Hill House"]
 };
-// 通用的高评分书单（如果用户没指定genre）
+// A general top-rated list if the user did not specify any genre
 const topRatedGeneral = [
   "To Kill a Mockingbird",
   "1984",
@@ -149,11 +150,11 @@ const topRatedGeneral = [
   "The Catcher in the Rye"
 ];
 
-// 1.6 多重条件推荐 (MultiCriteriaRecommendationIntent)
-//     训练短语中可能出现：genre(romance, fantasy, etc.), length(short/long), rated(high-rate, good reviews), pages (<300?)等
-//     这里只做简单示例，根据“short/long + rated + genre”拼接回答
+// 1.6 Multi-criteria recommendation (MultiCriteriaRecommendationIntent)
+//     Your training phrases may include: genre(romance, fantasy, etc.), length(short/long), rated(high-rate, good reviews), pages (<300?), etc.
+//     This is a simple demo: combine “short/long + rated + genre” to give some recommendations
 function getMultiCriteriaBooks(genre, length, rated) {
-  // 只做部分组合示例；可根据需要扩展
+  // Example sets for short + high rated, long + high rated, etc.
   const shortHighlyRated = {
     romance: ["Breakfast at Tiffany's (Novella)", "The Princess Bride (relatively short)"],
     fantasy: ["The Ocean at the End of the Lane", "Coraline"],
@@ -169,38 +170,32 @@ function getMultiCriteriaBooks(genre, length, rated) {
     nonfiction: ["Team of Rivals", "The Power Broker"]
   };
 
-  // 将空字符串转为null，方便逻辑判断
   genre = genre || null;
   length = length || null;
   rated = rated || null;
 
-  // 如果没有genre，就默认给一个提示
   if (!genre) {
     return ["(No specific genre provided) Possibly: '1984', 'Pride and Prejudice', 'The Hobbit'..."];
   }
 
-  // 转成小写
   genre = genre.toLowerCase();
 
-  // 简单判断
+  // If user wants high-rated or good reviews
   if (rated && (rated.includes("high") || rated.includes("good"))) {
-    // high rated
     if (length && length.includes("short")) {
-      // short + high rated + genre
       if (shortHighlyRated[genre]) {
         return shortHighlyRated[genre];
       } else {
         return [`No short highly-rated ${genre} in my list right now.`];
       }
     } else if (length && length.includes("long")) {
-      // long + high rated + genre
       if (longHighlyRated[genre]) {
         return longHighlyRated[genre];
       } else {
         return [`No long highly-rated ${genre} in my list right now.`];
       }
     } else {
-      // 只写 high rated + genre
+      // Just high-rated + genre
       if (topRatedByGenre[genre]) {
         return topRatedByGenre[genre];
       } else {
@@ -208,7 +203,7 @@ function getMultiCriteriaBooks(genre, length, rated) {
       }
     }
   } else {
-    // 没有 "rated" 或没包含 high/good => 就给一个普通推荐
+    // If there's no "rated" or doesn't contain "high/good", just return a normal recommendation
     if (genreRecommendations[genre]) {
       return genreRecommendations[genre];
     } else {
@@ -217,20 +212,61 @@ function getMultiCriteriaBooks(genre, length, rated) {
   }
 }
 
-// ====================== 2. 意图处理函数 ======================
+// ====================== 1.7 Fuzzy matching helpers for book_title & author ======================
+
+/**
+ * Normalize a string by removing punctuation, converting to lowercase, etc.
+ */
+function normalizeString(str) {
+  return str
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '') // remove punctuation
+    .trim();
+}
+
+/**
+ * Attempt to find the best key in a dictionary that matches userInput by substring.
+ * If userInput is contained in the dictionary key (or vice versa), we consider it a match.
+ * If multiple keys match, we'll pick the one with the longest normalizedKey length.
+ */
+function fuzzyMatch(userInput, dictionary) {
+  const normalizedInput = normalizeString(userInput);
+  let bestMatch = null;
+  let bestMatchLength = 0;
+
+  for (const key in dictionary) {
+    const normalizedKey = normalizeString(key);
+
+    // Check if userInput is contained in the key or key is contained in userInput
+    if (
+      normalizedInput.includes(normalizedKey) ||
+      normalizedKey.includes(normalizedInput)
+    ) {
+      // If there's more than one match, pick the one with the longest key
+      if (normalizedKey.length > bestMatchLength) {
+        bestMatch = key;
+        bestMatchLength = normalizedKey.length;
+      }
+    }
+  }
+
+  return bestMatch;
+}
+
+// ====================== 2. Intent handlers ======================
 
 /** Default Welcome Intent */
 function welcome(agent) {
   agent.add(
-    "Hello! I'm your Book Recommender Bot. " +
-    "I can help you with: \n" +
+    "Hello! I'm your Book Recommender Bot.\n" +
+    "I can help you with:\n" +
     "• Author-based recommendations\n" +
     "• Book information\n" +
     "• Genre-based recommendations\n" +
     "• Multi-criteria recommendations\n" +
     "• Similar book suggestions\n" +
     "• Top-rated books\n\n" +
-    "Just ask! And if you're done, say 'goodbye'."
+    "Just ask! If you're done, say 'goodbye'."
   );
 }
 
@@ -239,17 +275,27 @@ function fallback(agent) {
   agent.add("I’m sorry, I didn’t catch that. Could you please rephrase?");
 }
 
-/** 1) 按作者推荐书籍 */
+/** 1) Author-based recommendation */
 function authorBasedRecommendation(agent) {
-  const author = (agent.parameters.author || "").toLowerCase().trim();
-  
+  let author = (agent.parameters.author || "").toLowerCase().trim();
+
   if (!author) {
-    // 未提取到author
     agent.add("Which author are you interested in?");
     return;
   }
-  
-  const recs = authorRecommendations[author];
+
+  // Direct lookup first
+  let recs = authorRecommendations[author];
+
+  if (!recs) {
+    // If no direct match, try fuzzy matching
+    const fuzzyKey = fuzzyMatch(author, authorRecommendations);
+    if (fuzzyKey) {
+      recs = authorRecommendations[fuzzyKey];
+      author = fuzzyKey; // update the displayed author name to the matched key
+    }
+  }
+
   if (recs) {
     agent.add(`Here are some recommended books by ${author}:\n• ${recs.join("\n• ")}`);
   } else {
@@ -258,26 +304,37 @@ function authorBasedRecommendation(agent) {
   agent.add("Is there anything else you'd like to know?");
 }
 
-/** 2) 查询书籍信息 */
+/** 2) Book information */
 function bookInformation(agent) {
-  const book = (agent.parameters.book_info || "").toLowerCase().trim();
-  
+  let book = (agent.parameters.book_info || "").toLowerCase().trim();
+
   if (!book) {
     agent.add("Which book would you like information about?");
     return;
   }
-  
-  if (!bookDetails[book]) {
+
+  // Direct lookup
+  let info = bookDetails[book];
+
+  if (!info) {
+    // Attempt fuzzy match
+    const fuzzyKey = fuzzyMatch(book, bookDetails);
+    if (fuzzyKey) {
+      info = bookDetails[fuzzyKey];
+      book = fuzzyKey; // matched key
+    }
+  }
+
+  if (!info) {
     agent.add(`I don't have information about "${book}" at the moment.`);
     agent.add("Is there anything else you'd like to know?");
     return;
   }
-  
+
+  // Determine which detail the user wants based on the query text
   const query = agent.query.toLowerCase();
-  const info = bookDetails[book];
   let response = "";
-  
-  // 根据用户问句里的关键词，判断要返回哪部分信息
+
   if (query.includes("published")) {
     response = `${info.title} was published in ${info.publishedYear}.`;
   } else if (query.includes("page") || query.includes("pages")) {
@@ -287,23 +344,25 @@ function bookInformation(agent) {
   } else if (query.includes("about") || query.includes("what is") || query.includes("tell me")) {
     response = `${info.title}: ${info.summary}`;
   } else {
-    // 默认给 summary
+    // Default to summary
     response = `${info.title}: ${info.summary}`;
   }
-  
+
   agent.add(response);
   agent.add("Is there anything else you'd like to know?");
 }
 
-/** 3) 按类型推荐书籍 */
+/** 3) Genre-based recommendation */
 function genreBasedRecommendation(agent) {
+  // Because you have a custom entity for genre, we assume it's recognized properly.
+  // We'll keep the logic as is.
   const genre = (agent.parameters.genre || "").toLowerCase().trim();
-  
+
   if (!genre) {
     agent.add("Which genre are you interested in?");
     return;
   }
-  
+
   const recs = genreRecommendations[genre];
   if (recs) {
     agent.add(`Here are some ${genre} recommendations:\n• ${recs.join("\n• ")}`);
@@ -313,18 +372,18 @@ function genreBasedRecommendation(agent) {
   agent.add("Is there anything else you'd like to know?");
 }
 
-/** 4) 多重条件推荐 */
+/** 4) Multi-criteria recommendation */
 function multiCriteriaRecommendation(agent) {
+  // We assume genre, length, rated are recognized by your custom entities in Dialogflow
   const genre = (agent.parameters.genre || "").toLowerCase().trim();
   const length = (agent.parameters.length || "").toLowerCase().trim();
   const rated = (agent.parameters.rated || "").toLowerCase().trim();
-  
-  // 如果都没有，就提示
+
   if (!genre && !length && !rated) {
     agent.add("Sure, can you specify the genre, length (short/long), or rating preference (high-rate/good reviews) you're looking for?");
     return;
   }
-  
+
   const results = getMultiCriteriaBooks(genre, length, rated);
   if (results.length > 0) {
     agent.add(`Based on your preferences, here are some suggestions:\n• ${results.join("\n• ")}`);
@@ -334,16 +393,26 @@ function multiCriteriaRecommendation(agent) {
   agent.add("Is there anything else you'd like to know?");
 }
 
-/** 5) 寻找类似的书籍 */
+/** 5) Similar book recommendation */
 function similarBookRecommendation(agent) {
-  const bookTitle = (agent.parameters.book_title || "").toLowerCase().trim();
-  
+  let bookTitle = (agent.parameters.book_title || "").toLowerCase().trim();
+
   if (!bookTitle) {
     agent.add("Which book would you like to find something similar to?");
     return;
   }
-  
-  const recs = similarBooks[bookTitle];
+
+  // Direct lookup
+  let recs = similarBooks[bookTitle];
+  if (!recs) {
+    // Attempt fuzzy match
+    const fuzzyKey = fuzzyMatch(bookTitle, similarBooks);
+    if (fuzzyKey) {
+      recs = similarBooks[fuzzyKey];
+      bookTitle = fuzzyKey; // matched key
+    }
+  }
+
   if (recs) {
     agent.add(`Here are some books similar to "${bookTitle}":\n• ${recs.join("\n• ")}`);
   } else {
@@ -352,12 +421,12 @@ function similarBookRecommendation(agent) {
   agent.add("Is there anything else you'd like to know?");
 }
 
-/** 6) 推荐评分最高的书籍 */
+/** 6) Top-rated books */
 function topRatedBooks(agent) {
+  // Because you have a custom entity for genre, we keep the existing logic.
   const genre = (agent.parameters.genre || "").toLowerCase().trim();
-  
+
   if (!genre) {
-    // 如果用户没有给 genre，就给通用高分书
     agent.add(`Some top-rated books in general:\n• ${topRatedGeneral.join("\n• ")}`);
   } else {
     const recs = topRatedByGenre[genre];
@@ -370,20 +439,19 @@ function topRatedBooks(agent) {
   agent.add("Is there anything else you'd like to know?");
 }
 
-/** 7) 结束聊天 (Goodbye Intent) */
+/** 7) Goodbye Intent */
 function goodbye(agent) {
   agent.add("It was my pleasure to help you! Have a great day!");
 }
 
-// ====================== 3. Express 路由 & Intent Map ======================
-
+// ====================== 3. Express route & Intent map ======================
 app.post('/webhook', (request, response) => {
   const agent = new WebhookClient({ request, response });
-  
+
   let intentMap = new Map();
   intentMap.set('Default Welcome Intent', welcome);
   intentMap.set('Default Fallback Intent', fallback);
-  
+
   intentMap.set('AuthorBasedRecommendationIntent', authorBasedRecommendation);
   intentMap.set('BookInformationIntent', bookInformation);
   intentMap.set('GenreBasedRecommendationIntent', genreBasedRecommendation);
@@ -391,13 +459,13 @@ app.post('/webhook', (request, response) => {
   intentMap.set('SimilarBookRecommendationIntent', similarBookRecommendation);
   intentMap.set('TopRatedBooksIntent', topRatedBooks);
 
-  // 自定义结束聊天意图
+  // Custom goodbye intent
   intentMap.set('Goodbye', goodbye);
-  
+
   agent.handleRequest(intentMap);
 });
 
-// ====================== 4. 启动服务器 ======================
+// ====================== 4. Start server ======================
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`Book Recommender Fulfillment is running on port ${port}`);
