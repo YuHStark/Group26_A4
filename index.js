@@ -15,77 +15,77 @@ const app = express().use(bodyParser.json());
 
 // 1.1 Book details (BookInformationIntent) 
 //     Covers books mentioned in your training phrases (e.g., 1984, War and Peace, Pride and Prejudice, etc.)
-//     Each object can contain author, publishedYear, pages, summary, etc.
+//     Each object can contain author, publishedYear, pages, description, etc.
 const bookDetails = {
   "1984": {
     title: "1984",
     author: "George Orwell",
     publishedYear: 1949,
     pages: 328,
-    summary: "A dystopian novel that explores totalitarianism, surveillance, and repression."
+    description: "1984 reduce a su esencia luchas humanas en las que la razón ha perdido toda referencia moral colectiva creando una verdadera pesadilla sin salida. Es, en ese sentido, una fábula aterradora que habla de los efectos de construcciones humanas que han escapado a todo control y que emplean métodos de educación y destrucción de la personalidad individual y colectiva para aniquilar a los disidentes y educar a las nuevas generaciones en una barbarie que no cuestione el sistema de dominación. Esta obra maestra del genial escritor ingles fue escrita en 1948, en el Londres pos-guerra, por un Orwell desolado que había visto y vivido los horrores del fascismo y las consecuencias del estalinismo en la España de la República y en la tragedia de la Europa Contemporánea."
   },
   "war and peace": {
     title: "War and Peace",
     author: "Leo Tolstoy",
     publishedYear: 1869,
     pages: 1225,
-    summary: "A historical novel that chronicles the French invasion of Russia and its impact."
+    description: "From the award-winning translators of Anna Karenina and The Brothers Karamazov comes this magnificent new translation of Tolstoy's masterwork. War and Peace broadly focuses on Napoleon’s invasion of Russia in 1812 and follows three of the most well-known characters in literature: Pierre Bezukhov, the illegitimate son of a count who is fighting for his inheritance and yearning for spiritual fulfillment; Prince Andrei Bolkonsky, who leaves his family behind to fight in the war against Napoleon; and Natasha Rostov, the beautiful young daughter of a nobleman who intrigues both men.A s Napoleon’s army invades, Tolstoy brilliantly follows characters from diverse backgrounds—peasants and nobility, civilians and soldiers—as they struggle with the problems unique to their era, their history, and their culture. And as the novel progresses, these characters transcend their specificity, becoming some of the most moving—and human—figures in world literature."
   },
   "pride and prejudice": {
     title: "Pride and Prejudice",
     author: "Jane Austen",
     publishedYear: 1813,
     pages: 279,
-    summary: "A romantic novel of manners that deals with issues of class, marriage, and morality."
+    description: "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.\" Next to the exhortation at the beginning of Moby-Dick, \"Call me Ishmael,\" the first sentence of Jane Austen's Pride and Prejudice must be among the most quoted in literature. And certainly what Melville did for whaling Austen does for marriage--tracing the intricacies (not to mention the economics) of 19th-century British mating rituals with a sure hand and an unblinking eye. As usual, Austen trains her sights on a country village and a few families--in this case, the Bennets, the Philips, and the Lucases. Into their midst comes Mr. Bingley, a single man of good fortune, and his friend, Mr. Darcy, who is even richer. Mrs. Bennet, who married above her station, sees their arrival as an opportunity to marry off at least one of her five daughters. Bingley is complaisant and easily charmed by the eldest Bennet girl, Jane; Darcy, however, is harder to please. Put off by Mrs. Bennet's vulgarity and the untoward behavior of the three younger daughters, he is unable to see the true worth of the older girls, Jane and Elizabeth. His excessive pride offends Lizzy, who is more than willing to believe the worst that other people have to say of him; when George Wickham, a soldier stationed in the village, does indeed have a discreditable tale to tell, his words fall on fertile ground. Having set up the central misunderstanding of the novel, Austen then brings in her cast of fascinating secondary characters: Mr. Collins, the sycophantic clergyman who aspires to Lizzy's hand but settles for her best friend, Charlotte, instead; Lady Catherine de Bourgh, Mr. Darcy's insufferably snobbish aunt; and the Gardiners, Jane and Elizabeth's low-born but noble-hearted aunt and uncle. Some of Austen's best comedy comes from mixing and matching these representatives of different classes and economic strata, demonstrating the hypocrisy at the heart of so many social interactions. And though the novel is rife with romantic misunderstandings, rejected proposals, disastrous elopements, and a requisite happy ending for those who deserve one, Austen never gets so carried away with the romance that she loses sight of the hard economic realities of 19th-century matrimonial maneuvering. Good marriages for penniless girls such as the Bennets are hard to come by, and even Lizzy, who comes to sincerely value Mr. Darcy, remarks when asked when she first began to love him: \"It has been coming on so gradually, that I hardly know when it began. But I believe I must date it from my first seeing his beautiful grounds at Pemberley.\" She may be joking, but there's more than a little truth to her sentiment, as well. Jane Austen considered Elizabeth Bennet \"as delightful a creature as ever appeared in print\". Readers of Pride and Prejudice would be hard-pressed to disagree. --Alix Wilber"
   },
   "the hunger games": {
     title: "The Hunger Games",
     author: "Suzanne Collins",
     publishedYear: 2008,
     pages: 374,
-    summary: "A dystopian novel set in Panem, focusing on the deadly annual Hunger Games."
+    description: "Winning will make you famous. Losing means certain death.The nation of Panem, formed from a post-apocalyptic North America, is a country that consists of a wealthy Capitol region surrounded by 12 poorer districts. Early in its history, a rebellion led by a 13th district against the Capitol resulted in its destruction and the creation of an annual televised event known as the Hunger Games. In punishment, and as a reminder of the power and grace of the Capitol, each district must yield one boy and one girl between the ages of 12 and 18 through a lottery system to participate in the games. The 'tributes' are chosen during the annual Reaping and are forced to fight to the death, leaving only one survivor to claim victory.When 16-year-old Katniss's young sister, Prim, is selected as District 12's female representative, Katniss volunteers to take her place. She and her male counterpart Peeta, are pitted against bigger, stronger representatives, some of whom have trained for this their whole lives. , she sees it as a death sentence. But Katniss has been close to death before. For her, survival is second nature."
   },
   "lord of the rings": {
     title: "The Lord of the Rings",
     author: "J.R.R. Tolkien",
     publishedYear: 1954,
     pages: 1178,
-    summary: "An epic fantasy trilogy about the quest to destroy the One Ring."
+    description: "Peter Jackson's The Fellowship of the Ring has become one of ther most successful and visually stunning movies ever made. But that was only the beginning. For The Two Towers, the second part of the trilogy, the artists and designers knew that they would have to surpass even their own outstanding achievements. Within the   of this authoritative and insightful book are the incredible results of their work.The Art of The Two Towers illustrates the creative development of the film from sketches to special effects, and features more than 600 images, most appearing nowhere else. This official, fully authorized book includes pencil sketches by Alan Lee and John Howe, costume designs by Oscar-nominated Ngila Dickson and magnificent full-color paintings, sculptures and digital artwork from Oscar-winner Richard Taylor's Weta Workshop. All the spectacular landscapes, costumes, buildings, armor and creatures are covered in stunning detail, including concepts for characters and scenes which did not make it into the film.Accompanying this wealth of imagery are detailed and informative commentaries by all of the features artists, designers and other key personnel, together with a special afterword by Andy Serkis, the actor who breathed life into Gollum. Their thoughts and explanations give a unique and fascinating insight into how The Two Towers was brought to life, and how J.R.R. Tolkien's spellbinding literary descriptions were transformed into unforgettable movie magic."
   },
   "to kill a mockingbird": {
     title: "To Kill a Mockingbird",
     author: "Harper Lee",
     publishedYear: 1960,
     pages: 281,
-    summary: "A novel about racial injustice in the Deep South, seen through the eyes of a young girl."
+    description: "An unforgettable story of the violent, intolerant, eccentric, humorous and prejudiced Deep South seen through the eyes of children.With warmth and understanding Harper Lee brilliantly recreates not only her characters but a whole town and its way of life.Scout and Jem Finch lose their innocence when their lawyer father defends a Negro charged with the rape of a white girl.The lawyer is the town's conscience, but conscience makes more than cowards..."
   },
   "the great gatsby": {
     title: "The Great Gatsby",
     author: "F. Scott Fitzgerald",
     publishedYear: 1925,
     pages: 180,
-    summary: "A critique of the American Dream, set in the Roaring Twenties."
+    description: "The Great Gatsby, F. Scott Fitzgerald’s third book, stands as the supreme achievement of his career. This exemplary novel of the Jazz Age has been acclaimed by generations of readers. The story of the fabulously wealthy Jay Gatsby and his love for the beautiful Daisy Buchanan, of lavish parties on Long Island at a time when The New York Times noted “gin was the national drink and sex the national obsession,” it is an exquisitely crafted tale of America in the 1920s. The Great Gatsby is one of the great classics of twentieth-century literature. The timeless story of Jay Gatsby and his love for Daisy Buchanan is widely acknowledged to be the closest thing to the Great American Novel ever written."
   },
   "little women": {
     title: "Little Women",
     author: "Louisa May Alcott",
     publishedYear: 1868,
     pages: 759,
-    summary: "A coming-of-age story about the four March sisters growing up during the Civil War."
+    description: "No home library is complete without the classics! Little Women is a keepsake to be read and treasured.When Little Women was first published in 1868, it became an instant bestseller. The book’s gentle lessons and charming story of four adventurous sisters coming of age in Civil War-era New England was originally written as a children’s book, but quickly captured the hearts and attention of readers of all ages. Now part of the Word Cloud Classics series, Little Women is a must-have addition to the libraries of all classic literature lovers. About the Word Cloud Classics series:Classic works of literature with a clean, modern aesthetic! Perfect for both old and new literature fans, the Word Cloud Classics series from Canterbury Classics provides a chic and inexpensive introduction to timeless tales. With a higher production value, including heat burnished covers and foil stamping, these eye-catching, easy-to-hold editions are the perfect gift for students and fans of literature everywhere."
   },
   "vampire academy": {
     title: "Vampire Academy",
     author: "Richelle Mead",
     publishedYear: 2007,
     pages: 332,
-    summary: "A young adult paranormal romance focusing on a vampire boarding school."
+    description: "Only a true best friend can protect you from your immortal enemies . . . Lissa Dragomir is a Moroi princess: a mortal vampire with a rare gift for harnessing the earth's magic. She must be protected at all times from Strigoi; the fiercest vampires - the ones who never die. The powerful blend of human and vampire blood that flows through Rose Hathaway, Lissa's best friend, makes her a dhampir. Rose is dedicated to a dangerous life of protecting Lissa from the Strigoi, who are hell-bent on making Lissa one of them.After two years of freedom, Rose and Lissa are caught and dragged back to St. Vladimir's Academy, a school for vampire royalty and their guardians-to-be, hidden in the deep forests of Montana. But inside the iron gates, life is even more fraught with danger . . . and the Strigoi are always close by.Rose and Lissa must navigate their dangerous world, confront the temptations of forbidden love, and never once let their guard down, lest the evil undead make Lissa one of them forever . . ."
   },
   "heart of darkness": {
     title: "Heart of Darkness",
     author: "Joseph Conrad",
     publishedYear: 1899,
     pages: 96,
-    summary: "A novella exploring colonialism in the Congo and the darkness within human nature."
+    description: "Dark allegory describes the narrator's journey up the Congo River and his meeting with, and fascination by, Mr. Kurtz, a mysterious personage who dominates the unruly inhabitants of the region. Masterly blend of adventure, character development, psychological penetration. Considered by many Conrad's finest, most enigmatic story."
   }
 };
 
@@ -341,11 +341,24 @@ function bookInformation(agent) {
     response = `${info.title} has about ${info.pages} pages.`;
   } else if (query.includes("who wrote") || query.includes("author")) {
     response = `${info.title} was written by ${info.author}.`;
+  }else if (
+    query.includes("introduce") ||
+    query.includes("i want to know") ||
+    (query.includes("tell me about") && query.includes(info.title.toLowerCase()))
+) {
+    // Return ALL information about the book
+    response = 
+      `Here's everything about "${info.title}":\n` +
+      `• Author: ${info.author}\n` +
+      `• Published: ${info.publishedYear}\n` +
+      `• Pages: ${info.pages}\n` +
+      `• Book Description: ${info.description}`;
+
   } else if (query.includes("about") || query.includes("what is") || query.includes("tell me")) {
-    response = `${info.title}: ${info.summary}`;
+    response = `${info.title}: ${info.description}`;
   } else {
-    // Default to summary
-    response = `${info.title}: ${info.summary}`;
+    // Default to description
+    response = `${info.title}: ${info.description}`;
   }
 
   agent.add(response);
