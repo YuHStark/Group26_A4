@@ -354,6 +354,7 @@ function bookInformation(agent) {
 
 /** 3) Genre-based recommendation */
 function genreBasedRecommendation(agent) {
+  let genreParam = agent.parameters.genre;
   if (Array.isArray(genreParam) && genreParam.length > 0) {
     genreParam = genreParam[0];
   }
