@@ -103,7 +103,7 @@ const authorRecommendations = {
 };
 
 // 1.3 Genre-based recommendations (GenreBasedRecommendationIntent)
-//     Your training phrases mention: science fiction, fantasy, mystery, romance, historical fiction, 
+//     The training phrases mention: science fiction, fantasy, mystery, romance, historical fiction, 
 //     non-fiction, thriller, young adult, horror, self-help, etc.
 const genreRecommendations = {
   "science fiction": ["Dune", "Ender's Game", "Foundation"],
@@ -119,7 +119,7 @@ const genreRecommendations = {
 };
 
 // 1.4 Similar books (SimilarBookRecommendationIntent)
-//     Your training phrases mention: Game of Thrones, Pride and Prejudice, To Kill a Mockingbird, 1984, 
+//     The training phrases mention: Game of Thrones, Pride and Prejudice, To Kill a Mockingbird, 1984, 
 //     The Great Gatsby, Lord of the Rings, Jane Eyre, The Hunger Games, etc.
 const similarBooks = {
   "game of thrones": ["The Name of the Wind", "The Way of Kings", "The Wheel of Time"],
@@ -354,15 +354,6 @@ function bookInformation(agent) {
 
 /** 3) Genre-based recommendation */
 function genreBasedRecommendation(agent) {
-  let genreParam = agent.parameters.genre;
-  if (Array.isArray(genreParam) && genreParam.length > 0) {
-    genreParam = genreParam[0];
-  }
-  // If it's still not a string, default to empty
-  if (typeof genreParam !== 'string') {
-    genreParam = "";
-  }
-  
   const genre = (agent.parameters.genre || "").toLowerCase().trim();
 
   if (!genre) {
@@ -381,7 +372,7 @@ function genreBasedRecommendation(agent) {
 
 /** 4) Multi-criteria recommendation */
 function multiCriteriaRecommendation(agent) {
-  // We assume genre, length, rated are recognized by your custom entities in Dialogflow
+  // We assume genre, length, rated are recognized by the custom entities in Dialogflow
   const genre = (agent.parameters.genre || "").toLowerCase().trim();
   const length = (agent.parameters.length || "").toLowerCase().trim();
   const rated = (agent.parameters.rated || "").toLowerCase().trim();
