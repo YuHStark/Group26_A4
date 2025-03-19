@@ -354,8 +354,14 @@ function bookInformation(agent) {
 
 /** 3) Genre-based recommendation */
 function genreBasedRecommendation(agent) {
-  // Because you have a custom entity for genre, we assume it's recognized properly.
-  // We'll keep the logic as is.
+  if (Array.isArray(genreParam) && genreParam.length > 0) {
+    genreParam = genreParam[0];
+  }
+  // If it's still not a string, default to empty
+  if (typeof genreParam !== 'string') {
+    genreParam = "";
+  }
+  
   const genre = (agent.parameters.genre || "").toLowerCase().trim();
 
   if (!genre) {
