@@ -269,12 +269,12 @@ function welcome(agent) {
     "Hello! I'm your Book Recommender Bot.\n" +
     "I can help you with:\n" +
     "• Author-based recommendations\n" +
-    "• Book information\n" +
     "• Genre-based recommendations\n" +
     "• Multi-criteria recommendations\n" +
     "• Similar book suggestions\n" +
-    "• Top-rated books\n\n" +
-    "Just ask! If you're done, say 'goodbye'."
+    "• Recommend Top-rated books\n\n" +
+    "• Request Book information\n" +
+    "Just ask!"
   );
 }
 
